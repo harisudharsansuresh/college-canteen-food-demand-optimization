@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College Canteen | Stochastic Food Demand Optimizer</title>
+<style>
+:root{--navy:#101c35;--ink:#17243b;--muted:#64748b;--teal:#0d9488;--cyan:#22c1c3;--line:#e2e8f0;--bg:#f4f7fb;--white:#fff;--green:#087f5b;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+.hero{background:radial-gradient(circle at 85% 15%,#1d827f 0,transparent 28%),linear-gradient(125deg,#101c35,#173c59 70%,#0d716f);color:#fff;padding:48px 22px 42px}
+.wrap{max-width:1120px;margin:auto}.eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:.74rem;font-weight:800;color:#8ce6dc}.hero h1{font-size:clamp(2rem,5vw,3.45rem);line-height:1.08;max-width:820px;margin:13px 0}.hero p{max-width:740px;color:#d6e7f0;font-size:1.05rem}.identity{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.pill{border:1px solid #ffffff40;background:#ffffff12;border-radius:999px;padding:7px 13px;font-size:.86rem}
+main{padding:28px 18px 60px}.section{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:25px;margin:18px 0;box-shadow:0 8px 24px #17243b08}.section h2{margin:0 0 7px;font-size:1.35rem}.sub{color:var(--muted);margin:0 0 20px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.field label{display:block;font-size:.9rem;font-weight:700;margin:0 0 6px}.field input{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:12px 13px;font:inherit;color:var(--ink);background:#fff}.field input:focus{outline:3px solid #0d948822;border-color:var(--teal)}.hint{font-size:.78rem;color:var(--muted);margin-top:5px}
+.scenario-head,.scenario-row{display:grid;grid-template-columns:1fr 1fr 42px;gap:10px;align-items:center}.scenario-head{font-size:.83rem;font-weight:800;color:#475569;margin-bottom:8px}.scenario-row{margin:8px 0}.scenario-row input{min-width:0;width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}.remove{border:0;background:#fff0f0;color:#b42318;border-radius:9px;width:38px;height:38px;font-size:1.2rem;cursor:pointer}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}.btn{border:0;border-radius:11px;padding:12px 18px;font-weight:800;font-size:.94rem;cursor:pointer}.primary{background:linear-gradient(100deg,#0d9488,#087f8c);color:#fff}.secondary{background:#e8f4f3;color:#086b66}.dark{background:var(--navy);color:#fff}.btn:hover{filter:brightness(.96)}.error{color:var(--red);font-weight:700;margin-top:12px}.hidden{display:none!important}
+.results{margin-top:20px}.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.kpi{border-radius:15px;padding:18px;background:#f1f8f8;border:1px solid #d9eeeb}.kpi span{display:block;color:#526477;font-size:.82rem;font-weight:700}.kpi strong{display:block;font-size:1.65rem;margin-top:5px;color:#075e59;overflow-wrap:anywhere}.result-note{color:var(--muted);font-size:.88rem;margin-top:10px}
+.table-wrap{overflow-x:auto;margin-top:15px}table{width:100%;border-collapse:collapse;min-width:520px}th,td{text-align:right;padding:11px 12px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{background:#f8fafc;color:#475569;font-size:.82rem}tr.best{background:#e9f8f4;font-weight:800}
+.chartbox{height:280px;position:relative;margin-top:12px}canvas{width:100%;height:100%;display:block}.foot{color:var(--muted);font-size:.82rem;text-align:center;padding:12px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr}.section{padding:19px}.hero{padding-top:36px}.scenario-head,.scenario-row{grid-template-columns:1fr 1fr 38px}}
+@media print{body{background:#fff}.hero{print-color-adjust:exact}.section{box-shadow:none;break-inside:avoid}.btn{display:none}.results.hidden{display:block!important}}
+</style>
+</head>
+<body>
+<header class="hero"><div class="wrap">
+<div class="eyebrow">Stochastic decision support • Academic mini-project</div>
+<h1>College Canteen Food Demand Optimizer</h1>
+<p>Enter your menu item, costs and uncertain demand scenarios. The application evaluates your preparation decision and recommends the quantity with the highest expected profit.</p>
+<div class="identity"><span class="pill">HARI SUDHARSAN SURESH</span><span class="pill">Register No: RA2411047050038</span><span class="pill">Python • Stochastic Optimization</span></div>
+</div></header>
+<main class="wrap">
+<section class="section">
+<h2>01 · Food and business details</h2><p class="sub">Enter the details for the food item you want to plan.</p>
+<div class="grid">
+<div class="field"><label for="food">Food item name</label><input id="food" value="Meals" placeholder="e.g. Meals, Idli, Dosa"></div>
+<div class="field"><label for="capacity">Maximum preparation capacity (meals)</label><input id="capacity" type="number" min="1" max="10000" value="300"></div>
+<div class="field"><label for="quantity">Your planned preparation quantity (meals)</label><input id="quantity" type="number" min="0" value="200"></div>
+<div class="field"><label for="price">Selling price per meal (₹)</label><input id="price" type="number" min="0" step="0.01" value="70"></div>
+<div class="field"><label for="cost">Preparation cost per meal (₹)</label><input id="cost" type="number" min="0" step="0.01" value="40"></div>
+<div class="field"><label for="salvage">Leftover recovery value per meal (₹)</label><input id="salvage" type="number" min="0" step="0.01" value="5"><div class="hint">Amount recovered for each unsold meal.</div></div>
+<div class="field"><label for="penalty">Shortage penalty per meal (₹)</label><input id="penalty" type="number" min="0" step="0.01" value="10"><div class="hint">Estimated service or goodwill impact for each unmet meal.</div></div>
+</div>
+</section>
+<section class="section">
+<h2>02 · Demand scenarios and probabilities</h2>
+<p class="sub">Add possible customer-demand outcomes and the probability of each outcome. Probabilities must total 100%.</p>
+<div class="scenario-head"><div>Demand (meals)</div><div>Probability (%)</div><div></div></div>
+<div id="scenarios">
+<div class="scenario-row"><input class="demand" type="number" min="0" value="150" aria-label="Demand meals"><input class="prob" type="number" min="0" max="100" step="0.01" value="10" aria-label="Probability percent"><button class="remove" type="button" aria-label="Remove scenario">×</button></div>
+<div class="scenario-row"><input class="demand" type="number" min="0" value="180" aria-label="Demand meals"><input class="prob" type="number" min="0" max="100" step="0.01" value="20" aria-label="Probability percent"><button class="remove" type="button" aria-label="Remove scenario">×</button></div>
+<div class="scenario-row"><input class="demand" type="number" min="0" value="200" aria-label="Demand meals"><input class="prob" type="number" min="0" max="100" step="0.01" value="40" aria-label="Probability percent"><button class="remove" type="button" aria-label="Remove scenario">×</button></div>
+<div class="scenario-row"><input class="demand" type="number" min="0" value="220" aria-label="Demand meals"><input class="prob" type="number" min="0" max="100" step="0.01" value="20" aria-label="Probability percent"><button class="remove" type="button" aria-label="Remove scenario">×</button></div>
+<div class="scenario-row"><input class="demand" type="number" min="0" value="250" aria-label="Demand meals"><input class="prob" type="number" min="0" max="100" step="0.01" value="10" aria-label="Probability percent"><button class="remove" type="button" aria-label="Remove scenario">×</button></div>
+</div>
+<div class="actions"><button class="btn secondary" id="add" type="button">+ Add demand scenario</button><button class="btn secondary" id="reset" type="button">Restore sample data</button></div>
+<div class="hint" id="probTotal">Total probability: 100%</div>
+</section>
+<div class="actions"><button class="btn primary" id="calculate" type="button">Calculate optimization results</button><button class="btn dark" type="button" onclick="window.print()">Print / Save as PDF</button></div>
+<div id="error" class="error" role="alert"></div>
+<section id="results" class="section results hidden" aria-live="polite">
+<h2>03 · Optimization dashboard</h2><p class="sub" id="resultIntro"></p>
+<div class="kpis">
+<div class="kpi"><span>Expected profit for your quantity</span><strong id="plannedProfit">—</strong></div>
+<div class="kpi"><span>Recommended preparation quantity</span><strong id="optimalQty">—</strong></div>
+<div class="kpi"><span>Maximum expected profit</span><strong id="optimalProfit">—</strong></div>
+</div>
+<p class="result-note" id="recommendation"></p>
+<h3>Expected profit by preparation quantity</h3><p class="result-note">This line graph compares expected profit at every preparation quantity. Blue marks your entered quantity; orange marks the recommended optimum.</p><div class="chartbox"><canvas id="chart" width="1000" height="300" aria-label="Line graph of expected profit by preparation quantity"></canvas></div>
+<h3>Demand scenarios and probabilities</h3><p class="result-note">This bar graph shows how likely each demand level is according to your inputs.</p><div class="chartbox"><canvas id="demandChart" width="1000" height="300" aria-label="Bar graph of demand scenarios and probabilities"></canvas></div>
+<h3>Profit under each demand scenario</h3><div class="table-wrap"><table><thead><tr><th>Demand</th><th>Probability</th><th>Profit at your quantity</th><th>Weighted profit</th></tr></thead><tbody id="scenarioResults"></tbody></table></div>
+<p class="result-note">Expected profit is the sum of each scenario's profit multiplied by its probability. The shortage penalty is a user-defined proxy for service impact, not necessarily a direct cash expense.</p>
+</section>
+<section class="section">
+<h2>04 · How the model works</h2>
+<p>The model calculates sales, leftovers and shortages for every demand scenario.</p>
+<p><b>Profit = Sales revenue + Leftover recovery − Preparation cost − Shortage penalty</b></p>
+<p><b>Expected profit = Σ (Scenario probability × Scenario profit)</b></p>
+<p>The optimizer tests each whole-meal preparation quantity from zero up to the entered capacity and selects the one with the highest expected profit.</p>
+</section>
+<div class="foot">Academic prototype • Scenario inputs are illustrative until replaced with actual canteen records.</div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>'₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+function rows(){return [...document.querySelectorAll('.scenario-row')]}
+function updateTotal(){let total=rows().reduce((s,r)=>s+(Number(r.querySelector('.prob').value)||0),0);$('probTotal').textContent='Total probability: '+total.toFixed(2)+'%';$('probTotal').style.color=Math.abs(total-100)<0.001?'#087f5b':'#b42318'}
+function addRow(d='',p=''){let r=document.createElement('div');r.className='scenario-row';r.innerHTML='<input class="demand" type="number" min="0" placeholder="e.g. 240" aria-label="Demand meals"><input class="prob" type="number" min="0" max="100" step="0.01" placeholder="e.g. 15" aria-label="Probability percent"><button class="remove" type="button" aria-label="Remove scenario">×</button>';r.querySelector('.demand').value=d;r.querySelector('.prob').value=p;$('scenarios').appendChild(r);updateTotal()}
+$('add').addEventListener('click',()=>addRow());
+$('scenarios').addEventListener('click',e=>{if(e.target.classList.contains('remove')){if(rows().length>1)e.target.closest('.scenario-row').remove();updateTotal()}});
+$('scenarios').addEventListener('input',updateTotal);
+$('reset').addEventListener('click',()=>{$('scenarios').innerHTML='';[[150,10],[180,20],[200,40],[220,20],[250,10]].forEach(x=>addRow(...x));updateTotal()});
+function profit(Q,D,v){let sold=Math.min(Q,D),left=Math.max(Q-D,0),shortage=Math.max(D-Q,0);return sold*v.price+left*v.salvage-Q*v.cost-shortage*v.penalty}
+function drawDemandChart(scenarios){
+let c=$('demandChart'),ctx=c.getContext('2d'),w=c.width,h=c.height;
+ctx.clearRect(0,0,w,h);
+let pad={l:70,r:25,t:25,b:55},max=Math.max(10,...scenarios.map(s=>s.p*100));
+let top=Math.ceil(max/10)*10||10,plotH=h-pad.t-pad.b,plotW=w-pad.l-pad.r;
+ctx.font='13px sans-serif';ctx.textAlign='right';ctx.fillStyle='#64748b';ctx.strokeStyle='#e2e8f0';
+for(let i=0;i<=5;i++){let val=top*i/5,yy=pad.t+plotH-(val/top)*plotH;ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.fillText(val.toFixed(0)+'%',pad.l-10,yy+4)}
+let slot=plotW/scenarios.length,bw=Math.min(90,slot*.58);
+scenarios.forEach((s,i)=>{let pct=s.p*100,bh=(pct/top)*plotH,x=pad.l+i*slot+(slot-bw)/2,y=pad.t+plotH-bh;ctx.fillStyle='#0d9488';ctx.fillRect(x,y,bw,bh);ctx.fillStyle='#334155';ctx.textAlign='center';ctx.fillText(pct.toFixed(1)+'%',x+bw/2,Math.max(15,y-8));ctx.fillText(s.d+' meals',x+bw/2,h-25)});
+ctx.textAlign='left';ctx.fillStyle='#475569';ctx.fillText('Probability of each demand level',pad.l,15);
+}
+function drawChart(data,planned,opt){let c=$('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);let pad={l:75,r:25,t:20,b:45},min=Math.min(0,...data.map(x=>x.y)),max=Math.max(...data.map(x=>x.y));if(max===min)max=min+1;let x=i=>pad.l+i/(data.length-1||1)*(w-pad.l-pad.r),y=v=>h-pad.b-(v-min)/(max-min)*(h-pad.t-pad.b);
+ctx.strokeStyle='#e2e8f0';ctx.lineWidth=1;ctx.fillStyle='#64748b';ctx.font='13px sans-serif';for(let i=0;i<=4;i++){let val=min+(max-min)*i/4,yy=y(val);ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();ctx.fillText('₹'+Math.round(val).toLocaleString('en-IN'),5,yy+4)}
+ctx.strokeStyle='#0d9488';ctx.lineWidth=3;ctx.beginPath();data.forEach((p,i)=>i?ctx.lineTo(x(i),y(p.y)):ctx.moveTo(x(i),y(p.y)));ctx.stroke();
+let pi=Math.max(0,Math.min(data.length-1,Math.round(planned/(data.length-1||1)*(data.length-1))));ctx.fillStyle='#2563eb';ctx.beginPath();ctx.arc(x(pi),y(data[pi].y),6,0,Math.PI*2);ctx.fill();let oi=Math.round(opt/(data.length-1||1)*(data.length-1));ctx.fillStyle='#d97706';ctx.beginPath();ctx.arc(x(oi),y(data[oi].y),6,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#475569';ctx.fillText('0 meals',pad.l,h-12);ctx.fillText(data.length-1+' meals',w-pad.r-65,h-12);ctx.fillText('Blue: your quantity   Orange: optimum',pad.l,14)}
+$('calculate').addEventListener('click',()=>{
+$('error').textContent='';let v={food:$('food').value.trim(),capacity:Number($('capacity').value),quantity:Number($('quantity').value),price:Number($('price').value),cost:Number($('cost').value),salvage:Number($('salvage').value),penalty:Number($('penalty').value)};
+let bad=Object.entries(v).some(([k,x])=>k==='food'?!x:!Number.isFinite(x)||x<0);if(bad){$('error').textContent='Please complete every field with a valid non-negative value.';return}
+if(!Number.isInteger(v.capacity)||v.capacity<1||v.capacity>10000||!Number.isInteger(v.quantity)||v.quantity>v.capacity){$('error').textContent='Capacity must be a whole number from 1 to 10,000. Your preparation quantity must be a whole number within capacity.';return}
+let scenarios=rows().map(r=>({d:Number(r.querySelector('.demand').value),p:Number(r.querySelector('.prob').value)/100}));
+if(scenarios.some(s=>!Number.isFinite(s.d)||!Number.isInteger(s.d)||s.d<0||!Number.isFinite(s.p)||s.p<0)){ $('error').textContent='Enter a whole-number demand and a valid non-negative probability in every scenario.';return}
+let total=scenarios.reduce((s,x)=>s+x.p,0);if(Math.abs(total-1)>0.0001){$('error').textContent='Scenario probabilities must add up to exactly 100%. Current total: '+(total*100).toFixed(2)+'%.';return}
+let expected=Q=>scenarios.reduce((sum,s)=>sum+s.p*profit(Q,s.d,v),0),all=Array.from({length:v.capacity+1},(_,q)=>({q,y:expected(q)}));let best=all.reduce((a,b)=>b.y>a.y?b:a,all[0]),planned=expected(v.quantity);
+$('resultIntro').textContent='Results for '+v.food+' using '+scenarios.length+' demand scenarios.';
+$('plannedProfit').textContent=money(planned);$('optimalQty').textContent=best.q.toLocaleString('en-IN')+' meals';$('optimalProfit').textContent=money(best.y);
+$('recommendation').textContent=v.quantity===best.q?'Your entered quantity is the optimal preparation quantity for these inputs.':'Your entered quantity differs from the model recommendation by '+Math.abs(v.quantity-best.q)+' meals. Consider preparing '+best.q+' meals to maximize expected profit under the entered assumptions.';
+$('scenarioResults').innerHTML=scenarios.map(s=>{let pr=profit(v.quantity,s.d,v),weighted=pr*s.p;return `<tr><td>${s.d.toLocaleString('en-IN')} meals</td><td>${(s.p*100).toFixed(2)}%</td><td>${money(pr)}</td><td>${money(weighted)}</td></tr>`}).join('');
+drawChart(all,v.quantity,best.q);drawDemandChart(scenarios);$('results').classList.remove('hidden');$('results').scrollIntoView({behavior:'smooth',block:'start'});
+});
+updateTotal();
+// Automatically calculate sample results so both graphs are visible on opening.
+window.addEventListener('load', () => $('calculate').click());
+</script>
+</body></html>
